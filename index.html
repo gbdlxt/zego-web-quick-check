@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Web express日志速查模版</title>
+        <link rel="shortcut icon" href="favicon.ico">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" type="text/css" href="./css/style.css">
+    </head>
+    <body>
+        <header>
+            <h1>Web express日志速查模版</h1>
+            <div class="header-box">
+                <textarea id="filterText" placeholder="1.拷贝右侧模版,仿造示例输入参数;
+2.不必完全输入,缺少部分参数会导致复杂链接无法生成,后面补齐再生成即可;
+3.startTime不填,默认为当天0时;可填任何时间格式(能被 new Date()实例化)
+4.endTime不填,默认为第二天0时;可填任何时间格式(能被 new Date()实例化)
+5.boss系统受时间区间限制,以startTime为基点,4小时区间内以endTime为准,否则boss系统的链接重算endTime;
+6.pullUserId是流拓扑必填项,表示拉流者."></textarea>
+                <textarea id="filterTemplate" disabled style="width: 25%;"></textarea>
+                <textarea id="filterSample" disabled style="width: 25%;"></textarea>
+            </div>
+            <button id="generateBtn">点击生成链接</button>
+        </header>
+        <main>
+            <dl>
+                <dt>基础查询</dt>
+                <dd><a target="_blank" id="roomState">房间状态变化查询</a></dd>
+                <dd><a target="_blank" id="roomOrStreamState">房间状态 & 流状态变化查询</a></dd>
+                <dd><a target="_blank" id="osinfoOrSdkVer">浏览器版本 & SDK版本查询</a></dd>
+                <dd><a target="_blank" id="roomOrPreviewDeviceState">房间状态 & 预览 & 使用设备查询</a></dd>
+                <dd><a target="_blank" id="publisherOrDeviceState">推流状态 & 设备状态同步</a></dd>
+                <dd><a target="_blank" id="playerOrDeviceState">拉流状态 & 设备状态同步</a></dd>
+                <dd><a target="_blank" id="netProbResult">流状态 & 流节点质量探测处理结果</a></dd>
+                <dd><a target="_blank" id="startCord">房间云录制时间</a></dd>
+                <dd><a target="_blank" id="starMap">星图</a></dd>
+                <dd><a target="_blank" id="deviceChangeOrDeviceError">是否切换设备 结合 使用设备联合查询</a></dd>
+                <dd><a target="_blank" id="pusherSimple">推流过程(从创流到出质量数据，精简版)</a></dd>
+                <!-- <dd><a target="_blank" id="">拉流缩减过程</a></dd> -->
+                <dt>细节查询</dt>
+                <dd><a target="_blank" id="nodeAndNodes">媒体节点</a></dd>
+                <dd><a target="_blank" id="streamTopology">流拓扑</a></dd>
+                <dd><a target="_blank" id="udp">UDP报文查询</a></dd>
+                <dt>计算相对时间</dt>
+                <dd>
+                    <div style="display: flex;overflow: hidden;height: 200px;">
+                        <div class="calc-box">
+                            <input id="referenceTime" placeholder="输入参照时间">
+                            <textarea id="logData" placeholder="输入日志response"></textarea>
+                        </div>
+                        <div style="width: 33%; padding: 12px;overflow: auto;">计算结果
+                            <div id="calcRst">xxx</div>
+                        </div>
+                    </div>
+                    <button id="calcBtn">用客户端时间计算</button>
+                </dd>
+            </dl>
+
+        </main>
+        
+    </body>
+    <script src="./js/generateLink.js"></script>
+    <script>
+        const $filterText = document.querySelector('#filterText');
+        const $filterSample = document.querySelector('#filterSample');
+        const $filterTemplate = document.querySelector('#filterTemplate');
+        const filterSample = 'appid:1739272706\nroomid: 951753123\nuserid:sample1692603718595\nstreamid: webrtc1692603746081\nstartTime:Aug 21, 2023 @ 15:00:00.000\nendTime:Aug 21, 2023 @ 16:30:00.000\npullUserId:';
+        const filterTemplate = 'appid:\nroomid:\nuserid:\nstreamid:\nstartTime:\nendTime:\npullUserId:';
+        $filterSample.value = filterSample;
+        $filterTemplate.value = filterTemplate;
+        let links = {};
+
+        document.querySelector('#generateBtn').addEventListener('click', ()=> {
+            const values = $filterText.value.split('\n');
+            let params = {};
+            values.forEach(item=> {
+                let param = item.split(':').map(i=> i.trim());
+                if(param[1]) {
+                    params[param.splice(0, 1)] = param.join(':'); //时间格式，要把":"重新加回去
+                }
+            });
+            console.log('[values]', values);
+            console.log('[params]', params);
+            let { startTime, endTime } = params;
+            console.log('[startTime, endTime]', startTime, endTime);
+            delete params.startTime;
+            delete params.endTime;
+            // 简单查询，只涉及user、room过滤
+            let simpleOptions = {};
+            simpleOptions['appid'] = params.appid;
+            simpleOptions['userid'] = params.userid;
+            simpleOptions['roomid'] = params.roomid;
+            links['roomOrStreamState'] = GenerageLink.generateRoomOrStreamStateLink(simpleOptions, startTime, endTime);
+            links['roomState'] = GenerageLink.generateRoomStateChange(simpleOptions, startTime, endTime);
+            links['roomOrPreviewDeviceState'] = GenerageLink.generateRoomOrPreviewOrDeviceState(simpleOptions, startTime, endTime);
+            links['osinfoOrSdkVer'] = GenerageLink.generateOsinfoOrSdkVer(simpleOptions, startTime, endTime);
+            links['startCord'] = GenerageLink.generageStartCord(simpleOptions, startTime, endTime);
+            links['deviceChangeOrDeviceError'] = GenerageLink.generateDeviceChangeOrDeviceErrorLink(simpleOptions, startTime, endTime);
+            links['pusherSimple'] = GenerageLink.generatePusherSimpleLink(simpleOptions, startTime, endTime);
+
+            // 复杂查询
+            let streamOptions = Object.assign({}, simpleOptions);
+            streamOptions['streamid'] = params.streamid;
+            links['publisherOrDeviceState'] = GenerageLink.generagePublisherOrDeviceState(simpleOptions, startTime, endTime);
+            links['playerOrDeviceState'] = GenerageLink.generagePlayerOrDeviceState(simpleOptions, startTime, endTime);
+            links['netProbResult'] = GenerageLink.generageNetProbResult(streamOptions, startTime, endTime);
+            links['nodeAndNodes'] = GenerageLink.generageNodeAndNodes(streamOptions, startTime, endTime);
+            links['starMap'] = GenerageLink.generageStarMapLink(streamOptions, startTime, endTime);
+            links['udp'] = GenerageLink.generateUDPLink(streamOptions, startTime, endTime);
+            // 流拓扑
+            links['streamTopology'] = GenerageLink.generateStreamTopology(params, startTime, endTime);
+            console.warn(links);
+            render(links);
+        });
+
+        function render(links) {
+            Object.keys(links).forEach(id=> {
+                if(links[id]) {
+                    let $target = document.querySelector(`#${id}`);
+                    $target.setAttribute('href', links[id]);
+                }
+            });
+        }
+
+        document.querySelector('#calcBtn').addEventListener('click', ()=> {
+            const $referenceTime = document.querySelector('#referenceTime');
+            const $logData = document.querySelector('#logData');
+            const $calcRst = document.querySelector('#calcRst');
+
+            const _referenceTime = $referenceTime.value;
+            const _logData = $logData.value;
+            if(!_referenceTime || !_logData) { return; }
+
+            const referenceTime = new Date(_referenceTime.trim()).getTime();
+            const data = JSON.parse(_logData);
+            let calcRst = [];
+            data.hits.hits.forEach(hit=> {
+                let gap = new Date(hit._source.time) - referenceTime; // 用客户端时间计算
+                if(gap > 0) {
+                    console.log(formatSeconds(gap / 1000) + ' ~ ' + hit._source.time);
+                    calcRst.push(formatSeconds(gap / 1000) + ' ~ ' + hit._source.time);
+                }else {
+                    calcRst.push(0);
+                }
+            });
+
+            // document.querySelector('#pusherOrRefresh_video').value = [...new Set(paths.pusherOrRefresh)].join(';\n');
+            $calcRst.innerHTML = [...new Set(calcRst)].map(item=> {
+                return `<span>${item}</span>`
+            }).join('<br>');
+        });
+
+        //秒数转化为时分秒
+        function formatSeconds(value){
+            var secondTime = parseInt(value);// 秒
+            var minuteTime = 0;// 分
+            var hourTime = 0;// 小时
+            if(secondTime > 60) {//如果秒数大于60，将秒数转换成整数
+                //获取分钟，除以60取整数，得到整数分钟
+                minuteTime = parseInt(secondTime / 60);
+                //获取秒数，秒数取余，得到整数秒数
+                secondTime = parseInt(secondTime % 60);
+                //如果分钟大于60，将分钟转换成小时
+                if(minuteTime > 60) {
+                    //获取小时，获取分钟除以60，得到整数小时
+                    hourTime = parseInt(minuteTime / 60);
+                    //获取小时后取余的分，获取分钟除以60取余的分
+                    minuteTime = parseInt(minuteTime % 60);
+                }
+            }
+            var result = "" + parseInt(secondTime) + "秒";
+
+            if(minuteTime > 0) {
+            result = "" + parseInt(minuteTime) + "分" + result;
+            }
+            if(hourTime > 0) {
+            result = "" + parseInt(hourTime) + "小时" + result;
+            }
+            console.log('result',result);
+            return result;
+        }
+    </script>
+</html>

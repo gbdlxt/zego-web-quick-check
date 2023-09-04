@@ -1,0 +1,61 @@
+* {margin: 0; padding: 0; box-sizing: border-box;}
+button {cursor: pointer;}
+body,html {
+    height: 100%;
+}
+a[href]:active, a[href]:visited {
+    color: #4a91e249; 
+}
+
+header {
+    padding: 12px;
+    /* height: 120px; */
+}
+footer {
+    padding: 12px;
+    height: 64px;
+    font-size: 0.5rem;
+}
+main {
+    padding: 12px;
+}
+footer a {
+    margin: 0 12px;
+}
+.header-box {
+    display: flex;
+}
+.header-box>* {
+    width: 50%;
+    height: 150px;
+    padding: 6px;
+}
+#generateBtn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 6px;
+}
+main dt {
+    font-weight: bold;
+    padding-top: 12px;
+}
+main dd small {
+    margin-left: 100px;
+}
+.calc-box {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.calc-box>* {
+    margin-top: 12px;
+    padding: 6px;
+}
+.calc-box textarea {
+    height: 150px;
+}
+#calcBtn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 6px;
+}
