@@ -139,7 +139,6 @@ const GenerageLink = (function() {
         let time = NORMAL_TIME;
         let filterArray = [];
         let filters = '';
-        console.error(startTime, endTime, !startTime && !endTime, startTime && !endTime);
         if(startTime) {
             if(!endTime) {
                 const currentDay = new Date(startTime).toDateString();
