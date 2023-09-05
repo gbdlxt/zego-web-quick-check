@@ -139,13 +139,18 @@ const GenerageLink = (function() {
         let time = NORMAL_TIME;
         let filterArray = [];
         let filters = '';
-        if(startTime && endTime) {
+        console.error(startTime, endTime, !startTime && !endTime, startTime && !endTime);
+        if(startTime) {
+            if(!endTime) {
+                const currentDay = new Date(startTime).toDateString();
+                endTime = new Date(currentDay).getTime() + 24 * 60 * 60 * 1000 - 1;
+            }
             time = `(from:'${new Date(startTime).toISOString()}',to:'${new Date(endTime).toISOString()}')`;
         }
         Object.keys(params).forEach(key=> {
             if(params[key]) {
                 console.warn('params[key]', params[key], params, key)
-                let filter = `('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'${index}',key:${key},negate:!f,params:(query:${params[key]}),type:phrase),query:(match_phrase:(${key}:${params[key]})))`;
+                let filter = `('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'${index}',key:${key},negate:!f,params:(query:'${params[key]}'),type:phrase),query:(match_phrase:(${key}:'${params[key]}')))`;
                 filterArray.push(filter);
             }
         });

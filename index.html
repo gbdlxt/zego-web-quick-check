@@ -56,7 +56,17 @@
             </dl>
 
         </main>
-        
+        <!-- <footer>
+            其它检测工具：
+            <a target="_blank" href="https://dev-express-webrtc.zego.cloud/">内网 SDK发版测试demo</a>
+            <a target="_blank" href="https://dev-express-webrtc.zego.cloud/live-demo/#/Agora">内网 声网 v3.6.11</a>
+            <a target="_blank" href="http://cmdb.oa.zego.im/v2/">内网 CMDB</a>
+            <a target="_blank" href="https://web.sdk.qcloud.com/trtc/webrtc/doc/zh-cn/tutorial-02-info-webrtc-issues.html">外网 TRTC线上体验demo</a>
+            <a target="_blank" href="https://webrtc.github.io/samples/src/content/peerconnection/pc1/">webrtc samples</a>
+            <a target="_blank" href="https://zegodev.gitee.io/zego-express-webrtc-sample/">外网 web express v2.17.2</a>
+            <a target="_blank" href="https://webdemo.agora.io/premium_rtcn_test_4.15.0_pure/#/">外网 声网 可选版本</a>
+            <a target="_blank" href="https://webdemo.agora.io/">外网 声网 官方体验版</a>
+        </footer> -->
     </body>
     <script src="./js/generateLink.js"></script>
     <script>
@@ -75,7 +85,7 @@
             values.forEach(item=> {
                 let param = item.split(':').map(i=> i.trim());
                 if(param[1]) {
-                    params[param.splice(0, 1)] = param.join(':'); //时间格式，要把":"重新加回去
+                    params[param.splice(0, 1)] = '' + param.join(':'); //时间格式，要把":"重新加回去
                 }
             });
             console.log('[values]', values);
